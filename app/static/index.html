@@ -1,30 +1,912 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invoice Chaser (Day 1 test page)</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invoice Chaser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><path d='M9 16.5l4.5 4.5L23 11' stroke='white' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <style>
-:root{--bg:#fff;--fg:#1a1a1a;--card:#f4f4f6;--accent:#0070e0}
-@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#121212;--fg:#eee;--card:#1e1e22;--accent:#4da3ff}}
-body{font-family:system-ui;background:var(--bg);color:var(--fg);max-width:720px;margin:auto;padding:16px}
-textarea,input{width:100%;box-sizing:border-box;padding:8px;background:var(--card);color:var(--fg);border:1px solid #8884;border-radius:6px}
-button{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:6px;margin:6px 0;cursor:pointer}
-pre,.card{background:var(--card);padding:10px;border-radius:6px;white-space:pre-wrap}
-</style></head><body>
-<h2>Invoice Chaser</h2>
-<p>1. Paste a client chat</p>
-<textarea id="chat" rows="6">Client (Priya, priya@example.com): Can you design our logo and 3 social banners? 
+:root{
+  --bg:#f5f6fa;--surface:#ffffff;--surface-2:#f8f9fc;--border:#e4e7ef;--text:#111827;--muted:#6b7280;
+  --accent:#4f46e5;--accent-2:#6366f1;--accent-soft:#eef0ff;--accent-text:#ffffff;
+  --green:#059669;--green-soft:#e7f8f1;--red:#dc2626;--red-soft:#fdecec;--amber:#b45309;--amber-soft:#fef5e2;
+  --blue:#2563eb;--blue-soft:#e8f0ff;--violet:#7c3aed;--violet-soft:#f2ebff;--gray-soft:#f0f1f4;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 4px 14px rgba(16,24,40,.06);--shadow-lg:0 20px 50px rgba(16,24,40,.18);
+  --radius:14px;--skel-a:#eceef3;--skel-b:#f7f8fb;--focus:0 0 0 3px rgba(99,102,241,.45);
+}
+@media (prefers-color-scheme:dark){:root{
+  color-scheme:dark;--bg:#0d0f16;--surface:#151823;--surface-2:#1b1f2c;--border:#272b3a;--text:#e8eaf2;--muted:#9097ab;
+  --accent:#818cf8;--accent-2:#6366f1;--accent-soft:#232750;--accent-text:#0d0f16;
+  --green:#34d399;--green-soft:#123227;--red:#f87171;--red-soft:#3a1717;--amber:#fbbf24;--amber-soft:#3a2c0f;
+  --blue:#60a5fa;--blue-soft:#14264a;--violet:#a78bfa;--violet-soft:#2a1f4a;--gray-soft:#23263a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);--skel-a:#1d2130;--skel-b:#262b3d;
+}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:none;box-shadow:var(--focus);border-radius:8px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Layout */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 14px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;padding:4px 8px 18px}
+.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent-2),#8b5cf6);display:grid;place-items:center;box-shadow:0 4px 12px rgba(99,102,241,.35)}
+.logo svg{width:18px;height:18px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:500;position:relative}
+.nav a:hover{background:var(--surface-2);color:var(--text)}
+.nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.badge{margin-left:auto;background:var(--red);color:#fff;font-size:11.5px;font-weight:700;min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-grid;place-items:center}
+.badge[hidden]{display:none}
+.sidebar-foot{margin-top:auto}
+.demo{border:1px dashed var(--border);border-radius:12px;padding:12px;background:var(--surface-2)}
+.demo h3{margin:0 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;align-items:center;gap:6px}
+.demo p{margin:0 0 10px;font-size:12px;color:var(--muted)}
+.demo-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.demo-buttons button{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:6px 0;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--muted)}
+.demo-buttons button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
+.demo-buttons button:disabled{opacity:.6;cursor:wait}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:14px;padding:14px 28px;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(8px);position:sticky;top:0;z-index:5;border-bottom:1px solid var(--border)}
+.topbar h1{font-size:18px;margin:0;font-weight:650}
+.topbar .brand{display:none;padding:0}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.last-run{font-size:13px;color:var(--muted);white-space:nowrap}
+.banner{margin:16px 28px 0;padding:10px 14px;border-radius:12px;background:var(--amber-soft);color:var(--amber);font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:10px}
+.banner[hidden]{display:none}
+.banner button{margin-left:auto}
+.content{padding:24px 28px 48px;max-width:1180px;width:100%}
+.view[hidden]{display:none}
+.view-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.view-head h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.view-head p{margin:2px 0 0;color:var(--muted)}
+
+/* Cards and grid */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-pad{padding:18px 20px}
+.card h3{margin:0 0 12px;font-size:15px;font-weight:650;display:flex;align-items:center;gap:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.stat{padding:16px 18px;position:relative;overflow:hidden}
+.stat .label{color:var(--muted);font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px}
+.stat .icon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
+.stat .value{font-size:26px;font-weight:700;margin-top:8px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .sub{font-size:12.5px;color:var(--muted)}
+.two-col{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;padding:9px 15px;font-weight:600;font-size:14px;border:1px solid transparent;cursor:pointer;transition:background .15s,transform .05s,opacity .15s;white-space:nowrap;text-decoration:none}
+.btn:hover{text-decoration:none}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.65;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:var(--accent-text)}
+.btn-primary:hover:not(:disabled){background:var(--accent-2);color:#fff}
+.btn-ghost{background:var(--surface);border-color:var(--border);color:var(--text)}
+.btn-ghost:hover:not(:disabled){background:var(--surface-2)}
+.btn-danger{background:var(--surface);border-color:var(--border);color:var(--red)}
+.btn-danger:hover:not(:disabled){background:var(--red-soft)}
+.btn-green{background:var(--green);color:#fff}
+.btn-sm{padding:6px 10px;font-size:13px;border-radius:8px}
+.btn-icon{padding:7px;border-radius:8px}
+.spinner{width:15px;height:15px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .7s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Forms */
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
+input,select,textarea{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 11px;width:100%;font-size:14px;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-2);box-shadow:var(--focus)}
+textarea{resize:vertical;min-height:80px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid .full{grid-column:1/-1}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--amber-soft);color:var(--amber);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.items{width:100%;border-collapse:collapse;margin-top:6px}
+.items th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;padding:6px 6px}
+.items td{padding:5px 6px;vertical-align:middle}
+#newWrap{grid-template-columns:minmax(0,.85fr) minmax(0,1.25fr)}
+.items .num{width:84px}
+.items .total{width:96px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.items td.total{padding-right:10px}
+.items .act{width:44px;text-align:right}
+.grand{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:14px;border-top:1px solid var(--border)}
+.grand strong{font-size:22px;font-variant-numeric:tabular-nums}
+.ai-status{display:none;align-items:center;gap:10px;color:var(--accent);font-weight:600;margin:12px 0 0}
+.ai-status .dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:3px;animation:bounce 1.2s infinite}
+.ai-status .dots span:nth-child(2){animation-delay:.15s}.ai-status .dots span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}
+.extracting .ai-status{display:flex}
+.extracting #invoiceForm input,.extracting #invoiceForm select,.extracting #invoiceForm textarea{color:transparent;border-color:transparent;background:linear-gradient(90deg,var(--skel-a) 25%,var(--skel-b) 50%,var(--skel-a) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;pointer-events:none}
+.extracting #invoiceForm .chips,.extracting #invoiceForm .btn{visibility:hidden}
+
+/* Lists and tables */
+.table-wrap{overflow-x:auto}
+table.list{width:100%;border-collapse:collapse}
+table.list th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;padding:12px 16px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.list td{padding:13px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.list tr:last-child td{border-bottom:none}
+.client{font-weight:600}
+.subtle{color:var(--muted);font-size:12.5px}
+.amount{font-variant-numeric:tabular-nums;font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.sent{background:var(--blue-soft);color:var(--blue)}
+.pill.overdue{background:var(--red-soft);color:var(--red)}
+.pill.paid{background:var(--green-soft);color:var(--green)}
+.pill.closed{background:var(--gray-soft);color:var(--muted)}
+.actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.link{display:inline-flex;align-items:center;gap:5px;font-weight:600;text-decoration:none;font-size:13px}
+.link:hover{text-decoration:underline}
+.link svg.i{width:14px;height:14px}
+
+/* Attention list */
+.attn{display:flex;flex-direction:column;gap:10px}
+.attn-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
+.attn-item .grow{flex:1;min-width:0}
+.attn-item .why{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+/* Stage badges */
+.stage{display:inline-block;border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.stage.pre_due{background:var(--blue-soft);color:var(--blue)}
+.stage.friendly{background:var(--green-soft);color:var(--green)}
+.stage.professional{background:var(--amber-soft);color:var(--amber)}
+.stage.firm{background:var(--red-soft);color:var(--red)}
+
+/* Queue */
+.queue{display:grid;gap:16px}
+.draft-head{display:flex;align-items:flex-start;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.draft-head .client{font-size:16px}
+.why-box{background:var(--violet-soft);border-left:3px solid var(--violet);border-radius:10px;padding:11px 14px;margin-bottom:14px}
+.why-box .lbl{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--violet);margin-bottom:3px}
+.draft-fields{display:grid;gap:12px}
+.draft-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+
+/* Empty states */
+.empty{text-align:center;padding:36px 20px;color:var(--muted)}
+.empty .big{width:54px;height:54px;border-radius:16px;margin:0 auto 12px;display:grid;place-items:center;background:var(--green-soft);color:var(--green)}
+.empty .big svg.i{width:26px;height:26px}
+.empty h4{margin:0 0 4px;color:var(--text);font-size:15px}
+
+/* Timeline */
+.timeline{list-style:none;margin:0;padding:0;position:relative}
+.timeline li{display:flex;gap:12px;padding:0 0 16px;position:relative}
+.timeline li:not(:last-child)::before{content:"";position:absolute;left:15px;top:32px;bottom:2px;width:2px;background:var(--border)}
+.tl-icon{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--gray-soft);color:var(--muted)}
+.tl-icon svg.i{width:16px;height:16px}
+.tl-body{min-width:0;flex:1;padding-top:5px}
+.tl-title{font-weight:600;font-size:13.5px}
+.tl-detail{color:var(--muted);font-size:13px;word-break:break-word}
+.tl-time{color:var(--muted);font-size:12px;white-space:nowrap;padding-top:6px}
+.c-green{background:var(--green-soft);color:var(--green)}.c-red{background:var(--red-soft);color:var(--red)}
+.c-blue{background:var(--blue-soft);color:var(--blue)}.c-violet{background:var(--violet-soft);color:var(--violet)}
+.c-amber{background:var(--amber-soft);color:var(--amber)}.c-accent{background:var(--accent-soft);color:var(--accent)}
+
+/* Skeletons */
+.skel{background:linear-gradient(90deg,var(--skel-a) 25%,var(--skel-b) 50%,var(--skel-a) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.skel-line{height:12px;margin:8px 0}
+.skel-row{display:flex;gap:12px;align-items:center;padding:12px 0}
+
+/* Toasts */
+.toasts{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px;z-index:60;max-width:min(380px,calc(100vw - 32px))}
+.toast{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow-lg);animation:toastIn .25s ease-out}
+.toast.success{border-left-color:var(--green)}.toast.error{border-left-color:var(--red)}
+.toast .t-icon{margin-top:1px}.toast.success .t-icon{color:var(--green)}.toast.error .t-icon{color:var(--red)}.toast.info .t-icon{color:var(--blue)}
+.toast .t-msg{flex:1;font-size:13.5px}
+.toast .t-msg b{display:block}
+.toast button{background:none;border:none;color:var(--muted);cursor:pointer;padding:2px}
+.toast.out{animation:toastOut .2s ease-in forwards}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(20px)}}
+
+/* Modal */
+dialog{border:none;border-radius:16px;padding:0;background:var(--surface);color:var(--text);box-shadow:var(--shadow-lg);width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 48px)}
+dialog::backdrop{background:rgba(10,12,20,.5);backdrop-filter:blur(2px)}
+.m-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 6px}
+.m-head h3{margin:0;font-size:17px}
+.m-body{padding:8px 20px 4px;overflow:auto}
+.m-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 20px 18px}
+.results{list-style:none;margin:6px 0;padding:0;display:grid;gap:8px}
+.results li{padding:10px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border)}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+
+/* Responsive */
+@media (max-width:1050px){.stats{grid-template-columns:repeat(2,1fr)}.two-col,#newWrap{grid-template-columns:1fr}}
+.mobile-only{display:none}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-right:none;border-top:1px solid var(--border);z-index:20}
+  .sidebar .brand,.sidebar-foot{display:none}
+  .nav{flex-direction:row;width:100%;justify-content:space-around}
+  .nav a{flex-direction:column;gap:3px;font-size:10.5px;padding:6px 4px;flex:1;text-align:center}
+  .nav a .badge{position:absolute;top:0;right:calc(50% - 22px);margin:0;min-width:17px;height:17px;font-size:10px}
+  .topbar{padding:12px 16px;flex-wrap:wrap;row-gap:4px}
+  .topbar h1{display:none}.topbar .brand{display:flex}
+  .top-right{display:contents}
+  #runAgentBtn{margin-left:auto}
+  .last-run{order:3;width:100%;font-size:12px}
+  .banner{margin:12px 16px 0}
+  .content{padding:18px 16px 96px}
+  .stats{gap:10px}.stat .value{font-size:21px}
+  .form-grid{grid-template-columns:1fr}
+  .mobile-only{display:block}
+  table.list thead{display:none}
+  table.list,table.list tbody,table.list tr,table.list td{display:block;width:100%}
+  table.list tr{padding:12px 16px;border-bottom:1px solid var(--border)}
+  table.list td{border:none;padding:3px 0}
+  table.list td[data-label]::before{content:attr(data-label) ": ";color:var(--muted);font-size:12px}
+  .actions{justify-content:flex-start;margin-top:6px}
+  .items thead{display:none}
+  .items tr{display:grid;grid-template-columns:1fr 1fr 44px;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)}
+  .items td{padding:0}.items td:first-child{grid-column:1/-1}
+  .items .total{grid-column:1/3;text-align:left;width:auto}
+  .items .num{width:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4L18 8"/></svg></span>Invoice Chaser</div>
+    <nav class="nav">
+      <a href="#dashboard" data-view="dashboard"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard</span></a>
+      <a href="#new" data-view="new"><svg class="i" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg><span>New Invoice</span></a>
+      <a href="#invoices" data-view="invoices"><svg class="i" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>Invoices</span></a>
+      <a href="#queue" data-view="queue"><svg class="i" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span>Approval Queue</span><span class="badge" id="queueBadge" hidden aria-label="pending approvals">0</span></a>
+      <a href="#activity" data-view="activity"><svg class="i" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Activity</span></a>
+    </nav>
+    <div class="sidebar-foot">
+      <section class="demo" aria-labelledby="demoTitle">
+        <h3 id="demoTitle"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Demo: time travel</h3>
+        <p>Shift the agent's "today" to show escalation.</p>
+        <div class="demo-buttons" role="group" aria-label="Demo day offset"></div>
+      </section>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4L18 8"/></svg></span>Invoice Chaser</div>
+      <h1 id="viewTitle">Dashboard</h1>
+      <div class="top-right">
+        <span class="last-run" id="lastRun" aria-live="polite">Last agent run: …</span>
+        <button class="btn btn-primary" id="runAgentBtn" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg><span>Run agent now</span></button>
+      </div>
+    </header>
+    <div class="banner" id="demoBanner" role="status" hidden>
+      <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span id="demoBannerText"></span>
+      <button class="btn btn-ghost btn-sm" type="button" data-offset="0">Back to today</button>
+    </div>
+
+    <main class="content" id="content">
+      <!-- Dashboard -->
+      <section class="view" id="view-dashboard" aria-labelledby="h-dashboard">
+        <div class="view-head"><div><h2 id="h-dashboard">Overview</h2><p>Your money, the agent's work, and what needs you.</p></div></div>
+        <div class="stats" id="stats" aria-live="polite"></div>
+        <div class="two-col">
+          <section class="card card-pad" aria-labelledby="h-attn">
+            <h3 id="h-attn"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Needs your attention</h3>
+            <div id="attention"></div>
+          </section>
+          <section class="card card-pad" aria-labelledby="h-recent">
+            <h3 id="h-recent"><svg class="i" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Recent activity</h3>
+            <div id="recentActivity"></div>
+          </section>
+        </div>
+        <section class="demo mobile-only" style="margin-top:16px" aria-label="Demo time travel (mobile)">
+          <h3>Demo: time travel</h3>
+          <p>Shift the agent's "today" to show escalation.</p>
+          <div class="demo-buttons" role="group" aria-label="Demo day offset"></div>
+        </section>
+      </section>
+
+      <!-- New invoice -->
+      <section class="view" id="view-new" aria-labelledby="h-new" hidden>
+        <div class="view-head"><div><h2 id="h-new">New invoice</h2><p>Paste the client conversation. AI fills the form, you check it, PayPal sends it.</p></div></div>
+        <div class="two-col" id="newWrap">
+          <section class="card card-pad" aria-labelledby="h-chat">
+            <h3 id="h-chat">1. Client chat</h3>
+            <label class="sr-only" for="chat">Client chat</label>
+            <textarea id="chat" rows="11">Client (Priya, priya@example.com): Can you design our logo and 3 social banners?
 Me: Sure, $250 for the logo and $40 per banner.
 Priya: Deal! Please send the invoice, we'll pay by next Friday.</textarea>
-<button onclick="extract()">AI: Extract invoice</button>
-<p>2. Review and edit (JSON)</p>
-<textarea id="draft" rows="12"></textarea>
-<button onclick="send()">Create &amp; send PayPal invoice</button>
-<p>3. Your invoices</p><div id="list"></div>
+            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+              <button class="btn btn-primary" id="extractBtn" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg><span>Extract with AI</span></button>
+              <button class="btn btn-ghost" id="clearFormBtn" type="button">Clear form</button>
+            </div>
+            <div class="ai-status" role="status"><span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>AI is reading the chat…</div>
+          </section>
+          <section class="card card-pad" aria-labelledby="h-form">
+            <h3 id="h-form">2. Review and send</h3>
+            <form id="invoiceForm" novalidate>
+              <div class="chips" id="missingChips" aria-live="polite"></div>
+              <div class="form-grid">
+                <label class="f">Client name<input id="f_name" required autocomplete="off"></label>
+                <label class="f">Client email<input id="f_email" type="email" required autocomplete="off"></label>
+                <label class="f">Currency<select id="f_currency"><option>USD</option><option>EUR</option><option>GBP</option><option>INR</option><option>CAD</option><option>AUD</option></select></label>
+                <label class="f">Due date<input id="f_due" type="date" required></label>
+                <label class="f full">Note to client<textarea id="f_note" rows="2"></textarea></label>
+              </div>
+              <table class="items" aria-label="Line items">
+                <thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit price</th><th class="total">Total</th><th class="act"><span class="sr-only">Remove</span></th></tr></thead>
+                <tbody id="itemsBody"></tbody>
+              </table>
+              <button class="btn btn-ghost btn-sm" id="addItemBtn" type="button" style="margin-top:8px"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add line</button>
+              <div class="grand"><span class="subtle">Grand total</span><strong id="grandTotal">$0.00</strong></div>
+              <div style="display:flex;justify-content:flex-end;margin-top:16px">
+                <button class="btn btn-primary" id="sendBtn" type="submit"><svg class="i" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg><span>Create &amp; send via PayPal</span></button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </section>
+
+      <!-- Invoices -->
+      <section class="view" id="view-invoices" aria-labelledby="h-invoices" hidden>
+        <div class="view-head"><div><h2 id="h-invoices">Invoices</h2><p>Everything you've sent and where it stands.</p></div>
+          <a class="btn btn-primary" href="#new"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New invoice</a></div>
+        <div class="card"><div class="table-wrap" id="invoiceList"></div></div>
+      </section>
+
+      <!-- Queue -->
+      <section class="view" id="view-queue" aria-labelledby="h-queue" hidden>
+        <div class="view-head"><div><h2 id="h-queue">Approval queue</h2><p>The agent drafts. Nothing is sent until you approve it.</p></div></div>
+        <div class="queue" id="queueList"></div>
+      </section>
+
+      <!-- Activity -->
+      <section class="view" id="view-activity" aria-labelledby="h-activity" hidden>
+        <div class="view-head"><div><h2 id="h-activity">Activity</h2><p>Everything the agent and you have done.</p></div></div>
+        <div class="card card-pad" id="activityList"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" role="region" aria-live="polite" aria-label="Notifications"></div>
+
+<dialog id="modal" aria-labelledby="modalTitle">
+  <div class="m-head"><h3 id="modalTitle"></h3>
+    <button class="btn btn-ghost btn-icon" type="button" id="modalClose" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="m-body" id="modalBody"></div>
+  <div class="m-foot" id="modalFoot"></div>
+</dialog>
+
 <script>
-const $=id=>document.getElementById(id);
-async function api(path,opt={}){const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opt});const j=await r.json();if(!r.ok)throw new Error(JSON.stringify(j));return j}
-async function extract(){$('draft').value='Thinking...';const d=await api('/api/extract',{method:'POST',body:JSON.stringify({chat:$('chat').value})});$('draft').value=JSON.stringify(d,null,2)}
-async function send(){try{const d=JSON.parse($('draft').value);delete d.missing_info;const r=await api('/api/invoices',{method:'POST',body:JSON.stringify(d)});alert('Sent! '+r.id);load()}catch(e){alert(e.message)}}
-async function remind(id){const d=await api(`/api/invoices/${id}/draft-reminder`,{method:'POST'});const note=prompt('AI drafted reminder (edit then OK to send):',d.note);if(note){await api(`/api/invoices/${id}/remind`,{method:'POST',body:JSON.stringify({subject:d.subject,note})});alert('Reminder sent');load()}}
-async function refresh(id){await api(`/api/invoices/${id}/refresh`,{method:'POST'});load()}
-async function load(){const rows=await api('/api/invoices');$('list').innerHTML=rows.map(r=>`<div class="card"><b>${r.client_name}</b>, ${r.amount} ${r.currency}<br>Due ${r.due_date} (${r.days_overdue>0?r.days_overdue+' days overdue':'not due yet'}), <b>${r.status}</b>, reminders: ${r.reminders}<br>${r.payment_url?`<a href="${r.payment_url}" target="_blank" rel="noopener">Open payment page</a><br>`:''}<button onclick="refresh('${r.id}')">Refresh status</button> <button onclick="remind('${r.id}')">AI reminder</button></div><br>`).join('')||'None yet'}
-load();
-</script></body></html>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const svg = p => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
+const ICON = {
+  check: '<path d="M20 6 9 17l-5-5"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  alert: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+  doc: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+  send: '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>', bolt: '<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  sparkle: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  dollar: '<path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  ext: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  trash: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>', inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  wallet: '<rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M16 15h2"/>',
+};
+const ACTIONS = {
+  invoice_created: ["Invoice created", "doc", "c-accent"], invoice_sent: ["Invoice sent", "send", "c-blue"],
+  agent_run: ["Agent run", "bolt", "c-violet"], status_changed: ["Status changed", "refresh", "c-blue"],
+  draft_created: ["Reminder drafted", "sparkle", "c-violet"], draft_approved: ["Draft approved", "check", "c-green"],
+  draft_rejected: ["Draft rejected", "x", "c-amber"], reminder_sent: ["Reminder sent", "bell", "c-blue"],
+  payment_received: ["Payment received", "dollar", "c-green"], webhook_received: ["Webhook received", "link", "c-accent"],
+  error: ["Error", "alert", "c-red"], settings_changed: ["Demo time travel", "clock", "c-amber"],
+};
+const STAGES = {pre_due: "Pre-due", friendly: "Friendly", professional: "Professional", firm: "Firm"};
+const PAID = ["PAID", "MARKED_AS_PAID"], CLOSED = [...PAID, "CANCELLED"];
+const DEMO_OFFSETS = [0, 7, 12, 18];
+const TITLES = {dashboard: "Dashboard", new: "New Invoice", invoices: "Invoices", queue: "Approval Queue", activity: "Activity"};
+const state = {settings: null, stats: null, loaded: {}};
+
+/* ---------- API + feedback helpers ---------- */
+async function api(path, opt = {}) {
+  let r;
+  try {
+    r = await fetch(path, {headers: {"Content-Type": "application/json"}, ...opt});
+  } catch {
+    throw new Error("Can't reach the server. Is it running?");
+  }
+  let body = null;
+  try { body = await r.json(); } catch { /* non-JSON */ }
+  if (!r.ok) {
+    let msg = body && body.detail;
+    if (Array.isArray(msg)) msg = msg.map(d => `${(d.loc || []).slice(-1)[0]}: ${d.msg}`).join("; ");
+    throw new Error(msg || `Request failed (${r.status})`);
+  }
+  return body;
+}
+
+async function busy(btn, label, fn) {
+  const html = btn.innerHTML;
+  btn.disabled = true;
+  btn.setAttribute("aria-busy", "true");
+  btn.innerHTML = `<span class="spinner" aria-hidden="true"></span><span>${esc(label)}</span>`;
+  try { return await fn(); }
+  finally { btn.disabled = false; btn.removeAttribute("aria-busy"); btn.innerHTML = html; }
+}
+
+function toast(type, message, title) {
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  el.setAttribute("role", type === "error" ? "alert" : "status");
+  const icon = {success: ICON.check, error: ICON.alert, info: ICON.info}[type];
+  el.innerHTML = `<span class="t-icon">${svg(icon)}</span><div class="t-msg">${title ? `<b>${esc(title)}</b>` : ""}${esc(message)}</div>
+    <button type="button" aria-label="Dismiss">${svg(ICON.x)}</button>`;
+  const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 200); };
+  el.querySelector("button").onclick = close;
+  $("#toasts").appendChild(el);
+  setTimeout(close, type === "error" ? 8000 : 4500);
+}
+
+const modal = $("#modal");
+let modalResolve = null;
+function openModal({title, body, buttons}) {
+  $("#modalTitle").textContent = title;
+  $("#modalBody").innerHTML = body;
+  const foot = $("#modalFoot");
+  foot.innerHTML = "";
+  return new Promise(resolve => {
+    modalResolve = resolve;
+    for (const b of buttons) {
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = `btn ${b.cls || "btn-ghost"}`;
+      el.innerHTML = b.label;
+      el.onclick = async () => {
+        if (b.onClick) { if (await b.onClick(el) === false) return; }
+        closeModal(b.value);
+      };
+      foot.appendChild(el);
+    }
+    modal.showModal();
+    // Destructive confirms focus Cancel, so a stray Enter never rejects anything.
+    (foot.querySelector(".btn-danger") ? foot.querySelector("button") : foot.querySelector(".btn-primary") || foot.querySelector("button")).focus();
+  });
+}
+function closeModal(value) {
+  if (modal.open) modal.close();
+  if (modalResolve) { modalResolve(value); modalResolve = null; }
+}
+modal.addEventListener("close", () => closeModal(undefined));
+modal.addEventListener("click", e => { if (e.target === modal) closeModal(undefined); });
+$("#modalClose").onclick = () => closeModal(undefined);
+const confirmModal = (title, text, label, cls = "btn-danger") =>
+  openModal({title, body: `<p>${esc(text)}</p>`, buttons: [{label: "Cancel", value: false}, {label, cls, value: true}]});
+
+/* ---------- formatting ---------- */
+const money = (v, cur = "USD") => {
+  try { return new Intl.NumberFormat(undefined, {style: "currency", currency: cur || "USD"}).format(+v || 0); }
+  catch { return `${(+v || 0).toFixed(2)} ${cur}`; }
+};
+const fmtDate = d => d ? new Date(d + "T00:00:00").toLocaleDateString(undefined, {month: "short", day: "numeric", year: "numeric"}) : "";
+function ago(ts) {
+  if (!ts) return "never";
+  const s = Math.max(0, (Date.now() - Date.parse(ts)) / 1000);
+  if (s < 45) return "just now";
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+  const d = Math.round(s / 86400);
+  return `${d} day${d === 1 ? "" : "s"} ago`;
+}
+function dueText(days) {
+  if (days > 0) return `${days} day${days === 1 ? "" : "s"} overdue`;
+  if (days === 0) return "Due today";
+  return `Due in ${-days} day${days === -1 ? "" : "s"}`;
+}
+function statusPill(inv) {
+  if (PAID.includes(inv.status)) return '<span class="pill paid">Paid</span>';
+  if (inv.status === "CANCELLED") return '<span class="pill closed">Cancelled</span>';
+  if (inv.days_overdue > 0) return '<span class="pill overdue">Overdue</span>';
+  return '<span class="pill sent">Sent</span>';
+}
+const stageBadge = s => `<span class="stage ${esc(s)}">${esc(STAGES[s] || s)}</span>`;
+const skelLines = n => Array.from({length: n}, (_, i) =>
+  `<div class="skel-row"><div class="skel" style="width:32px;height:32px;border-radius:50%"></div><div style="flex:1"><div class="skel skel-line" style="width:${55 + (i * 13) % 35}%"></div><div class="skel skel-line" style="width:${30 + (i * 17) % 30}%"></div></div></div>`).join("");
+
+function countUp(el, to, fmt) {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const from = +(el.dataset.v || 0);
+  el.dataset.v = to;
+  if (reduce || from === to) { el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 700;
+  const step = t => {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(from + (to - from) * e);
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+/* ---------- routing ---------- */
+function route() {
+  const view = (location.hash || "#dashboard").slice(1);
+  const name = TITLES[view] ? view : "dashboard";
+  $$(".view").forEach(v => v.hidden = v.id !== `view-${name}`);
+  $$(".nav a").forEach(a => a.dataset.view === name ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  $("#viewTitle").textContent = TITLES[name];
+  document.title = `${TITLES[name]} · Invoice Chaser`;
+  loadView(name);
+}
+function loadView(name) {
+  if (name === "dashboard") { loadStats(); loadAttention(); loadRecent(); }
+  if (name === "invoices") loadInvoices();
+  if (name === "queue") loadQueue();
+  if (name === "activity") loadActivity();
+}
+const currentView = () => { const v = (location.hash || "#dashboard").slice(1); return TITLES[v] ? v : "dashboard"; };
+
+/* ---------- top bar, badge, demo ---------- */
+function renderLastRun() {
+  $("#lastRun").textContent = `Last agent run: ${ago(state.stats && state.stats.last_agent_run)}`;
+}
+function renderBadge(n) {
+  const b = $("#queueBadge");
+  b.hidden = !n;
+  b.textContent = n;
+  b.setAttribute("aria-label", `${n} pending approval${n === 1 ? "" : "s"}`);
+}
+async function refreshMeta() {
+  try {
+    state.stats = await api("/api/stats");
+    renderBadge(state.stats.pending_approvals);
+    renderLastRun();
+  } catch { /* shown elsewhere */ }
+}
+function renderDemo() {
+  const off = state.settings ? state.settings.day_offset : 0;
+  $$(".demo-buttons").forEach(g => {
+    if (!g.children.length) g.innerHTML = DEMO_OFFSETS.map(n =>
+      `<button type="button" data-offset="${n}" aria-label="Time travel plus ${n} days">+${n}</button>`).join("");
+    $$("button", g).forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.offset === off)));
+  });
+  const banner = $("#demoBanner");
+  banner.hidden = !off;
+  if (off) $("#demoBannerText").textContent =
+    `Demo mode: +${off} days. The agent thinks today is ${fmtDate(state.settings.agent_today)}.`;
+}
+async function loadSettings() {
+  try { state.settings = await api("/api/settings"); renderDemo(); } catch (e) { toast("error", e.message); }
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-offset]");
+  if (!b) return;
+  const n = +b.dataset.offset;
+  const all = $$("[data-offset]");
+  all.forEach(x => x.disabled = true);
+  try {
+    state.settings = await api("/api/settings", {method: "POST", body: JSON.stringify({day_offset: n})});
+    renderDemo();
+    toast("info", n ? `Agent date is now ${fmtDate(state.settings.agent_today)}. Run the agent to see what it does.` : "Back to the real date.",
+      n ? `Time travel: +${n} days` : "Time travel off");
+    await refreshAll();
+  } catch (err) { toast("error", err.message); }
+  finally { all.forEach(x => x.disabled = false); }
+});
+
+$("#runAgentBtn").onclick = e => busy(e.currentTarget, "Agent running…", async () => {
+  try {
+    const r = await api("/api/agent/run", {method: "POST"});
+    if (r.skipped) { toast("info", r.message); return; }
+    await refreshAll();
+    toast(r.drafted ? "success" : "info",
+      `Checked ${r.checked} open invoice${r.checked === 1 ? "" : "s"}, ${r.drafted} new draft${r.drafted === 1 ? "" : "s"}.`, "Agent run complete");
+    if (r.results.length) {
+      const items = r.results.map(x => `<li><span class="client">${esc(x.client_name)}</span>
+        <div class="subtle">${esc(x.invoice_id)}</div><div>${esc(x.outcome)}</div></li>`).join("");
+      const go = await openModal({title: "What the agent did", body:
+        `<p class="subtle">Agent date: ${esc(fmtDate(r.agent_date))}. Drafts wait for your approval; nothing was sent.</p><ul class="results">${items}</ul>`,
+        buttons: r.drafted ? [{label: "Close", value: false}, {label: "Review drafts", cls: "btn-primary", value: true}]
+                           : [{label: "Close", cls: "btn-primary", value: false}]});
+      if (go) location.hash = "#queue";
+    }
+  } catch (err) { toast("error", err.message, "Agent run failed"); }
+});
+
+/* ---------- dashboard ---------- */
+async function loadStats() {
+  const box = $("#stats");
+  if (!state.loaded.stats) box.innerHTML = Array.from({length: 4}, () =>
+    `<div class="card stat"><div class="skel skel-line" style="width:50%"></div><div class="skel" style="height:28px;width:70%;margin-top:14px"></div><div class="skel skel-line" style="width:40%"></div></div>`).join("");
+  try {
+    const s = state.stats = await api("/api/stats");
+    renderBadge(s.pending_approvals); renderLastRun();
+    const cards = [
+      ["outstanding", "Outstanding", s.total_outstanding, v => money(v), "c-blue", ICON.wallet, "Unpaid, across open invoices"],
+      ["overdue", "Overdue", s.overdue_count, v => Math.round(v), "c-red", ICON.alert, "Invoices past their due date"],
+      ["paid", "Paid", s.paid_total, v => money(v), "c-green", ICON.dollar, "Collected so far"],
+      ["pending", "Pending approvals", s.pending_approvals, v => Math.round(v), "c-violet", ICON.inbox, "Drafts waiting for you"],
+    ];
+    if (!state.loaded.stats) {
+      box.innerHTML = cards.map(([k, label, , , c, ic, sub]) => `<div class="card stat"><div class="label"><span class="icon ${c}">${svg(ic)}</span>${label}</div>
+        <div class="value" id="stat-${k}" data-v="0">0</div><div class="sub">${sub}</div></div>`).join("");
+      state.loaded.stats = true;
+    }
+    cards.forEach(([k, , v, fmt]) => countUp($(`#stat-${k}`), v, fmt));
+  } catch (e) {
+    box.innerHTML = `<div class="card card-pad" style="grid-column:1/-1">${esc(e.message)}</div>`;
+    state.loaded.stats = false;
+  }
+}
+async function loadAttention() {
+  const box = $("#attention");
+  if (!state.loaded.attention) box.innerHTML = skelLines(3);
+  try {
+    const drafts = await api("/api/drafts?status=pending");
+    state.loaded.attention = true;
+    box.innerHTML = drafts.length ? `<div class="attn">${drafts.slice(0, 5).map(d => `
+      <div class="attn-item"><div class="grow"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="client">${esc(d.client_name)}</span>${stageBadge(d.stage)}<span class="amount subtle">${money(d.amount, d.currency)}</span></div>
+      <div class="why">${esc(d.reason)}</div></div><a class="btn btn-ghost btn-sm" href="#queue">Review</a></div>`).join("")}</div>`
+      : `<div class="empty"><div class="big">${svg(ICON.check)}</div><h4>You're all caught up</h4><div>No reminders are waiting for approval.</div></div>`;
+  } catch (e) { box.innerHTML = `<p class="subtle">${esc(e.message)}</p>`; }
+}
+function timeline(rows) {
+  if (!rows.length) return `<div class="empty"><div class="big c-accent">${svg(ICON.clock)}</div><h4>No activity yet</h4><div>Create an invoice or run the agent.</div></div>`;
+  return `<ul class="timeline">${rows.map(a => {
+    const [title, ic, c] = ACTIONS[a.action] || [a.action, "info", ""];
+    const who = a.client_name ? ` · ${esc(a.client_name)}` : "";
+    return `<li><span class="tl-icon ${c}">${svg(ICON[ic])}</span><div class="tl-body"><div class="tl-title">${esc(title)}${who}</div>
+      <div class="tl-detail">${esc(a.detail)}</div></div><time class="tl-time" datetime="${esc(a.timestamp)}" title="${esc(new Date(a.timestamp).toLocaleString())}">${ago(a.timestamp)}</time></li>`;
+  }).join("")}</ul>`;
+}
+async function loadRecent() {
+  const box = $("#recentActivity");
+  if (!state.loaded.recent) box.innerHTML = skelLines(4);
+  try { box.innerHTML = timeline(await api("/api/activity?limit=8")); state.loaded.recent = true; }
+  catch (e) { box.innerHTML = `<p class="subtle">${esc(e.message)}</p>`; }
+}
+
+/* ---------- invoices ---------- */
+async function loadInvoices() {
+  const box = $("#invoiceList");
+  if (!state.loaded.invoices) box.innerHTML = `<div class="card-pad">${skelLines(4)}</div>`;
+  try {
+    const rows = await api("/api/invoices");
+    state.loaded.invoices = true;
+    if (!rows.length) { box.innerHTML = `<div class="empty"><div class="big c-accent">${svg(ICON.doc)}</div><h4>No invoices yet</h4><div><a href="#new">Create your first invoice</a></div></div>`; return; }
+    box.innerHTML = `<table class="list"><thead><tr><th>Client</th><th>Amount</th><th>Due date</th><th>Timing</th><th>Status</th><th>Reminders</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>
+      ${rows.map(r => {
+        const open = !CLOSED.includes(r.status);
+        return `<tr><td><div class="client">${esc(r.client_name)}</div><div class="subtle">${esc(r.id)}</div></td>
+        <td data-label="Amount" class="amount">${money(r.amount, r.currency)}</td>
+        <td data-label="Due">${esc(fmtDate(r.due_date))}</td>
+        <td data-label="Timing" class="subtle">${open ? dueText(r.days_overdue) : "—"}</td>
+        <td>${statusPill(r)}</td><td data-label="Reminders">${r.reminders}</td>
+        <td><div class="actions">
+          ${r.payment_url ? `<a class="link btn btn-ghost btn-sm" href="${esc(r.payment_url)}" target="_blank" rel="noopener">Open payment page ${svg(ICON.ext)}</a>` : ""}
+          ${open ? `<button class="btn btn-ghost btn-sm" type="button" data-remind="${esc(r.id)}">${svg(ICON.sparkle)}AI reminder</button>` : ""}
+          <button class="btn btn-ghost btn-sm" type="button" data-refresh="${esc(r.id)}" aria-label="Refresh status of ${esc(r.client_name)} invoice">${svg(ICON.refresh)}Refresh</button>
+        </div></td></tr>`;
+      }).join("")}</tbody></table>`;
+  } catch (e) { box.innerHTML = `<div class="card-pad">${esc(e.message)}</div>`; }
+}
+$("#invoiceList").addEventListener("click", async e => {
+  const rb = e.target.closest("[data-refresh]");
+  if (rb) {
+    await busy(rb, "Refreshing…", async () => {
+      try {
+        const r = await api(`/api/invoices/${encodeURIComponent(rb.dataset.refresh)}/refresh`, {method: "POST"});
+        toast("success", `PayPal status: ${r.status}`, "Status refreshed");
+      } catch (err) { toast("error", err.message); }
+    });
+    await refreshAll();
+    return;
+  }
+  const mb = e.target.closest("[data-remind]");
+  if (mb) manualReminder(mb);
+});
+async function manualReminder(btn) {
+  const id = btn.dataset.remind;
+  let d;
+  await busy(btn, "Drafting…", async () => {
+    try { d = await api(`/api/invoices/${encodeURIComponent(id)}/draft-reminder`, {method: "POST"}); }
+    catch (err) { toast("error", err.message); }
+  });
+  if (!d) return;
+  await openModal({title: "Send a reminder now", body: `
+    <p class="subtle">AI drafted this based on how late the payment is. Edit it, then send through PayPal.</p>
+    <div class="draft-fields"><label class="f">Subject<input id="mSubject" value="${esc(d.subject)}"></label>
+    <label class="f">Message<textarea id="mNote" rows="6">${esc(d.note)}</textarea></label></div>`,
+    buttons: [{label: "Cancel", value: false}, {label: `${svg(ICON.send)}<span>Send reminder</span>`, cls: "btn-primary", onClick: async el => {
+      let ok = false;
+      await busy(el, "Sending…", async () => {
+        try {
+          await api(`/api/invoices/${encodeURIComponent(id)}/remind`, {method: "POST",
+            body: JSON.stringify({subject: $("#mSubject").value, note: $("#mNote").value})});
+          ok = true;
+        } catch (err) { toast("error", err.message); }
+      });
+      if (ok) { toast("success", "PayPal emailed the reminder to your client.", "Reminder sent"); refreshAll(); }
+      return ok;
+    }}]});
+}
+
+/* ---------- approval queue ---------- */
+async function loadQueue() {
+  const box = $("#queueList");
+  if (!state.loaded.queue) box.innerHTML = Array.from({length: 2}, () => `<div class="card card-pad">
+    <div class="skel skel-line" style="width:35%;height:16px"></div><div class="skel" style="height:54px;margin:14px 0"></div>
+    <div class="skel" style="height:38px"></div><div class="skel" style="height:110px;margin-top:12px"></div></div>`).join("");
+  try {
+    const drafts = await api("/api/drafts?status=pending");
+    state.loaded.queue = true;
+    renderBadge(drafts.length);
+    if (!drafts.length) {
+      box.innerHTML = `<div class="card"><div class="empty"><div class="big">${svg(ICON.check)}</div><h4>Nothing to approve</h4>
+        <div>The agent will put reminder drafts here when a client needs a nudge.</div></div></div>`;
+      return;
+    }
+    // Keep what the user is typing: only re-render cards that changed.
+    const existing = new Set($$("[data-draft]", box).map(c => c.dataset.draft));
+    const ids = new Set(drafts.map(d => String(d.id)));
+    if (existing.size && [...ids].every(id => existing.has(id)) && existing.size === ids.size) return;
+    box.innerHTML = drafts.map(d => `
+      <article class="card card-pad" data-draft="${d.id}" aria-labelledby="dt-${d.id}">
+        <div class="draft-head"><div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span class="client" id="dt-${d.id}">${esc(d.client_name)}</span>${stageBadge(d.stage)}</div>
+          <div class="subtle">${money(d.amount, d.currency)} · due ${esc(fmtDate(d.due_date))} · ${dueText(d.days_overdue)} · ${d.reminders} sent</div></div>
+          <span class="subtle">Drafted ${ago(d.created_at)}</span></div>
+        <div class="why-box"><div class="lbl">${svg(ICON.sparkle)}Why now</div>${esc(d.reason)}</div>
+        <div class="draft-fields">
+          <label class="f">Subject<input data-field="subject" value="${esc(d.subject)}"></label>
+          <label class="f">Message<textarea data-field="note" rows="5">${esc(d.note)}</textarea></label>
+        </div>
+        <div class="draft-foot">
+          <button class="btn btn-danger" type="button" data-reject="${d.id}">${svg(ICON.x)}<span>Reject</span></button>
+          <button class="btn btn-green" type="button" data-approve="${d.id}">${svg(ICON.send)}<span>Approve &amp; Send</span></button>
+        </div>
+      </article>`).join("");
+  } catch (e) { box.innerHTML = `<div class="card card-pad">${esc(e.message)}</div>`; state.loaded.queue = false; }
+}
+$("#queueList").addEventListener("click", async e => {
+  const ab = e.target.closest("[data-approve]"), rb = e.target.closest("[data-reject]");
+  if (ab) {
+    const card = ab.closest("[data-draft]");
+    const subject = $('[data-field="subject"]', card).value.trim(), note = $('[data-field="note"]', card).value.trim();
+    if (!subject || !note) { toast("error", "Subject and message can't be empty."); return; }
+    let ok = false;
+    await busy(ab, "Sending…", async () => {
+      try {
+        await api(`/api/drafts/${ab.dataset.approve}/approve`, {method: "POST", body: JSON.stringify({subject, note})});
+        ok = true;
+      } catch (err) { toast("error", err.message, "Not sent"); }
+    });
+    if (ok) { toast("success", "PayPal emailed the reminder to your client.", "Approved & sent"); state.loaded.queue = false; refreshAll(); }
+  }
+  if (rb) {
+    if (!await confirmModal("Reject this draft?", "The agent won't send it, and won't draft this stage again for this invoice.", "Reject draft")) return;
+    await busy(rb, "Rejecting…", async () => {
+      try {
+        await api(`/api/drafts/${rb.dataset.reject}/reject`, {method: "POST"});
+        toast("info", "Draft rejected. Nothing was sent.");
+        state.loaded.queue = false; await refreshAll();
+      } catch (err) { toast("error", err.message); }
+    });
+  }
+});
+
+/* ---------- activity ---------- */
+async function loadActivity() {
+  const box = $("#activityList");
+  if (!state.loaded.activity) box.innerHTML = skelLines(6);
+  try { box.innerHTML = timeline(await api("/api/activity?limit=50")); state.loaded.activity = true; }
+  catch (e) { box.innerHTML = `<p class="subtle">${esc(e.message)}</p>`; }
+}
+
+/* ---------- new invoice form ---------- */
+const itemsBody = $("#itemsBody");
+function addItem(it = {}) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td><input aria-label="Description" data-k="description" value="${esc(it.description || "")}" placeholder="What you did"></td>
+    <td class="num"><input aria-label="Quantity" data-k="quantity" type="number" min="0" step="any" value="${esc(it.quantity ?? 1)}"></td>
+    <td class="num"><input aria-label="Unit price" data-k="unit_price" type="number" min="0" step="0.01" value="${esc(it.unit_price ?? "")}" placeholder="0.00"></td>
+    <td class="total" aria-live="off">$0.00</td>
+    <td class="act"><button class="btn btn-ghost btn-icon" type="button" aria-label="Remove line">${svg(ICON.trash)}</button></td>`;
+  tr.querySelector("button").onclick = () => { tr.remove(); if (!itemsBody.children.length) addItem(); recalc(); };
+  itemsBody.appendChild(tr);
+  recalc();
+}
+function readItems() {
+  return $$("tr", itemsBody).map(tr => ({
+    description: $('[data-k="description"]', tr).value.trim(),
+    quantity: parseFloat($('[data-k="quantity"]', tr).value) || 0,
+    unit_price: parseFloat($('[data-k="unit_price"]', tr).value) || 0,
+  }));
+}
+function recalc() {
+  const cur = $("#f_currency").value;
+  let total = 0;
+  $$("tr", itemsBody).forEach((tr, i) => {
+    const it = readItems()[i], row = it.quantity * it.unit_price;
+    total += row;
+    $(".total", tr).textContent = money(row, cur);
+  });
+  $("#grandTotal").textContent = money(total, cur);
+}
+itemsBody.addEventListener("input", recalc);
+$("#f_currency").addEventListener("change", recalc);
+$("#addItemBtn").onclick = () => { addItem(); $$('[data-k="description"]', itemsBody).pop().focus(); };
+function defaultDue() { const d = new Date(); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); }
+function resetForm() {
+  ["#f_name", "#f_email", "#f_note"].forEach(s => $(s).value = "");
+  $("#f_currency").value = "USD"; $("#f_due").value = defaultDue();
+  itemsBody.innerHTML = ""; addItem(); $("#missingChips").innerHTML = "";
+}
+function fillForm(d) {
+  $("#f_name").value = d.client_name || "";
+  $("#f_email").value = d.client_email || "";
+  const cur = (d.currency || "USD").toUpperCase(), sel = $("#f_currency");
+  if (![...sel.options].some(o => o.value === cur)) sel.add(new Option(cur, cur));
+  sel.value = cur;
+  $("#f_due").value = d.due_date || defaultDue();
+  $("#f_note").value = d.note || "";
+  itemsBody.innerHTML = "";
+  (d.items && d.items.length ? d.items : [{}]).forEach(addItem);
+  $("#missingChips").innerHTML = (d.missing_info || []).map(m => `<span class="chip">${svg(ICON.alert)}${esc(m)}</span>`).join("");
+}
+$("#extractBtn").onclick = e => {
+  const chat = $("#chat").value.trim();
+  if (!chat) { toast("error", "Paste a client conversation first."); $("#chat").focus(); return; }
+  const wrap = $("#newWrap");
+  return busy(e.currentTarget, "Extracting…", async () => {
+    wrap.classList.add("extracting"); $("#invoiceForm").setAttribute("aria-busy", "true");
+    try {
+      fillForm(await api("/api/extract", {method: "POST", body: JSON.stringify({chat})}));
+      toast("success", "Check the details, then send.", "Invoice drafted by AI");
+    } catch (err) { toast("error", err.message, "Couldn't extract"); }
+    finally { wrap.classList.remove("extracting"); $("#invoiceForm").removeAttribute("aria-busy"); }
+  });
+};
+$("#clearFormBtn").onclick = resetForm;
+$("#invoiceForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const items = readItems().filter(i => i.description || i.unit_price);
+  const payload = {client_name: $("#f_name").value.trim(), client_email: $("#f_email").value.trim(),
+    currency: $("#f_currency").value, due_date: $("#f_due").value, note: $("#f_note").value.trim() || null, items};
+  const problems = [];
+  if (!payload.client_name) problems.push("client name");
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(payload.client_email)) problems.push("a valid client email");
+  if (!payload.due_date) problems.push("due date");
+  if (!items.length || items.some(i => !i.description || i.unit_price <= 0 || i.quantity <= 0)) problems.push("line items with a description, quantity and price");
+  if (problems.length) { toast("error", `Please add ${problems.join(", ")}.`, "Almost there"); return; }
+  busy($("#sendBtn"), "Sending…", async () => {
+    try {
+      const r = await api("/api/invoices", {method: "POST", body: JSON.stringify(payload)});
+      toast("success", `${r.id} · ${money(r.total, payload.currency)}. PayPal emailed it to ${payload.client_email}.`, "Invoice sent");
+      resetForm(); state.loaded.invoices = false; location.hash = "#invoices"; refreshAll();
+    } catch (err) { toast("error", err.message, "Invoice not sent"); }
+  });
+});
+
+/* ---------- boot + auto refresh ---------- */
+async function refreshAll() {
+  await Promise.all([refreshMeta(), loadSettings()]);
+  loadView(currentView());
+}
+window.addEventListener("hashchange", route);
+resetForm();
+loadSettings();
+refreshMeta();
+route();
+setInterval(() => { if (!document.hidden) refreshAll(); }, 30000);
+setInterval(renderLastRun, 15000);
+</script>
+</body>
+</html>

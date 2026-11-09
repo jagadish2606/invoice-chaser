@@ -43,6 +43,10 @@ class Reminder(BaseModel):
     note: str
 
 
+class Reason(BaseModel):
+    reason: str = Field(description="One sentence, under 30 words")
+
+
 async def _ask(prompt: str, schema: type[BaseModel]) -> dict:
     config = types.GenerateContentConfig(
         response_mime_type="application/json",
@@ -91,3 +95,15 @@ async def write_reminder(client_name: str, amount: str, due_date: str, days_over
         "Note under 80 words, no placeholders, no sign-off name."
     )
     return await _ask(prompt, Reminder)
+
+
+async def explain_action(facts: str) -> str:
+    """One sentence telling the freelancer why the agent is drafting a reminder right now."""
+    prompt = (
+        "You are an invoice-chasing assistant. Based only on these facts, write ONE sentence "
+        "explaining to the freelancer why you are drafting a payment reminder now and why this tone. "
+        "Example: 'Invoice is 9 days overdue and the friendly reminder got no response, so "
+        "escalating to a professional tone.' Do not invent facts.\n\n"
+        f"Facts:\n{facts}"
+    )
+    return (await _ask(prompt, Reason))["reason"]

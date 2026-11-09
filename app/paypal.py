@@ -7,6 +7,10 @@ BASE = os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com")
 _token = {"value": None, "expires": 0}
 
 
+class PayPalError(RuntimeError):
+    """PayPal answered with an error status."""
+
+
 async def _get_token() -> str:
     if _token["value"] and time.time() < _token["expires"] - 60:
         return _token["value"]
@@ -31,7 +35,7 @@ async def _call(method: str, path: str, json: dict | None = None) -> dict:
     async with httpx.AsyncClient(timeout=30) as c:
         r = await c.request(method, f"{BASE}{path}", json=json, headers=headers)
     if r.status_code >= 400:
-        raise RuntimeError(f"PayPal {r.status_code}: {r.text}")
+        raise PayPalError(f"PayPal {r.status_code}: {r.text}")
     return r.json() if r.content else {}
 
 
