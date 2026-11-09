@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invoice Chaser (Day 1 test page)</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--card:#f4f4f6;--accent:#0070e0}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#121212;--fg:#eee;--card:#1e1e22;--accent:#4da3ff}}
+body{font-family:system-ui;background:var(--bg);color:var(--fg);max-width:720px;margin:auto;padding:16px}
+textarea,input{width:100%;box-sizing:border-box;padding:8px;background:var(--card);color:var(--fg);border:1px solid #8884;border-radius:6px}
+button{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:6px;margin:6px 0;cursor:pointer}
+pre,.card{background:var(--card);padding:10px;border-radius:6px;white-space:pre-wrap}
+</style></head><body>
+<h2>Invoice Chaser</h2>
+<p>1. Paste a client chat</p>
+<textarea id="chat" rows="6">Client (Priya, priya@example.com): Can you design our logo and 3 social banners? 
+Me: Sure, $250 for the logo and $40 per banner.
+Priya: Deal! Please send the invoice, we'll pay by next Friday.</textarea>
+<button onclick="extract()">AI: Extract invoice</button>
+<p>2. Review and edit (JSON)</p>
+<textarea id="draft" rows="12"></textarea>
+<button onclick="send()">Create &amp; send PayPal invoice</button>
+<p>3. Your invoices</p><div id="list"></div>
+<script>
+const $=id=>document.getElementById(id);
+async function api(path,opt={}){const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opt});const j=await r.json();if(!r.ok)throw new Error(JSON.stringify(j));return j}
+async function extract(){$('draft').value='Thinking...';const d=await api('/api/extract',{method:'POST',body:JSON.stringify({chat:$('chat').value})});$('draft').value=JSON.stringify(d,null,2)}
+async function send(){try{const d=JSON.parse($('draft').value);delete d.missing_info;const r=await api('/api/invoices',{method:'POST',body:JSON.stringify(d)});alert('Sent! '+r.id);load()}catch(e){alert(e.message)}}
+async function remind(id){const d=await api(`/api/invoices/${id}/draft-reminder`,{method:'POST'});const note=prompt('AI drafted reminder (edit then OK to send):',d.note);if(note){await api(`/api/invoices/${id}/remind`,{method:'POST',body:JSON.stringify({subject:d.subject,note})});alert('Reminder sent');load()}}
+async function refresh(id){await api(`/api/invoices/${id}/refresh`,{method:'POST'});load()}
+async function load(){const rows=await api('/api/invoices');$('list').innerHTML=rows.map(r=>`<div class="card"><b>${r.client_name}</b>, ${r.amount} ${r.currency}<br>Due ${r.due_date} (${r.days_overdue>0?r.days_overdue+' days overdue':'not due yet'}), <b>${r.status}</b>, reminders: ${r.reminders}<br>${r.payment_url?`<a href="${r.payment_url}" target="_blank" rel="noopener">Open payment page</a><br>`:''}<button onclick="refresh('${r.id}')">Refresh status</button> <button onclick="remind('${r.id}')">AI reminder</button></div><br>`).join('')||'None yet'}
+load();
+</script></body></html>
