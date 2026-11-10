@@ -7,12 +7,20 @@ import json
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
 from . import agent, ai, paypal
 from .db import day_offset, days_overdue, db, get_setting, log, now_iso, set_setting, today
+from .ratelimit import ai_rate_limit
+
+AI_LIMITED = [Depends(ai_rate_limit)]
+WEBHOOK_STATUS = {
+    "INVOICING.INVOICE.PAID": "PAID",
+    "INVOICING.INVOICE.CANCELLED": "CANCELLED",
+    "INVOICING.INVOICE.REFUNDED": "REFUNDED",
+}
 
 
 @asynccontextmanager
@@ -79,7 +87,12 @@ def home():
     return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
-@app.post("/api/extract")
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+
+@app.post("/api/extract", dependencies=AI_LIMITED)
 async def extract(body: ChatIn):
     """Step 1: AI reads the messy chat and proposes an invoice (human reviews it)."""
     try:
@@ -130,7 +143,7 @@ async def refresh(invoice_id: str):
     return {"id": invoice_id, "status": status}
 
 
-@app.post("/api/invoices/{invoice_id}/draft-reminder")
+@app.post("/api/invoices/{invoice_id}/draft-reminder", dependencies=AI_LIMITED)
 async def draft_reminder(invoice_id: str):
     """AI writes a reminder whose tone matches how late the payment is."""
     r = get_invoice_row(invoice_id)
@@ -156,7 +169,7 @@ async def send_reminder(invoice_id: str, body: ReminderIn):
 
 # ---------- Agent ----------
 
-@app.post("/api/agent/run")
+@app.post("/api/agent/run", dependencies=AI_LIMITED)
 async def run_agent():
     """Run one agent cycle now. It only creates drafts; nothing is sent without approval."""
     return await agent.run_agent_cycle("manual")
@@ -286,15 +299,30 @@ async def update_settings(body: SettingsIn):
 
 @app.post("/webhooks/paypal")
 async def webhook(request: Request):
-    event = await request.json()
+    """PayPal pushes invoice events here for instant status updates.
+
+    The signature is verified with PayPal when PAYPAL_WEBHOOK_ID is set (always set it in production).
+    """
+    try:
+        event = await request.json()
+    except ValueError:
+        raise HTTPException(400, "Body must be JSON")
+    event_type = event.get("event_type", "unknown event")
     if not await paypal.verify_webhook(dict(request.headers), event):
+        log("error", f"Rejected webhook {event_type}: signature verification failed")
         raise HTTPException(400, "Invalid signature")
-    log("webhook_received", event.get("event_type", "unknown event"))
-    if event.get("event_type") == "INVOICING.INVOICE.PAID":
-        res = event.get("resource", {})
-        invoice_id = res.get("invoice", res).get("id")
+    resource = event.get("resource") or {}
+    invoice = resource.get("invoice") if isinstance(resource.get("invoice"), dict) else resource
+    invoice_id = invoice.get("id")
+    log("webhook_received", f"{event_type} (event {event.get('id', '?')})", invoice_id)
+    status = WEBHOOK_STATUS.get(event_type)
+    if status and invoice_id:
         with db() as con:
             row = con.execute("SELECT * FROM invoices WHERE id=?", (invoice_id,)).fetchone()
         if row:
-            agent.apply_status(dict(row), {"status": "PAID"})
+            # Also withdraws pending drafts and logs "Payment received" for paid invoices.
+            agent.apply_status(dict(row), {"status": status, "detail": invoice.get("detail", {})})
+        else:
+            log("webhook_received", f"Ignored {event_type}: invoice {invoice_id} is not in this app")
+    # Always 200 for events we accept, so PayPal doesn't keep retrying.
     return {"received": True}

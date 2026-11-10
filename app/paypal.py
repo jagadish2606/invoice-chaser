@@ -96,5 +96,8 @@ async def verify_webhook(headers: dict, event: dict) -> bool:
         "webhook_id": webhook_id,
         "webhook_event": event,
     }
-    res = await _call("POST", "/v1/notifications/verify-webhook-signature", body)
+    try:
+        res = await _call("POST", "/v1/notifications/verify-webhook-signature", body)
+    except Exception:
+        return False  # can't verify -> treat as unverified
     return res.get("verification_status") == "SUCCESS"

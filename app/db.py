@@ -1,12 +1,14 @@
 """SQLite storage: schema/migrations, settings, activity log, and the agent's clock."""
+import os
 import sqlite3
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-DB = Path("invoices.db")
+DB = Path(os.getenv("DB_PATH", "invoices.db"))
 
 
 def db():
+    DB.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(DB)
     con.row_factory = sqlite3.Row
     con.execute("""CREATE TABLE IF NOT EXISTS invoices (

@@ -1,0 +1,35 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Values marked "sync: false" are secrets/personal: Render asks for them when you create the
+# Blueprint, and they are never stored in this repo.
+services:
+  - type: web
+    name: invoice-chaser
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.18
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_BASE_URL
+        value: https://api-m.sandbox.paypal.com
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: gemini-3.5-flash
+      - key: FREELANCER_NAME
+        sync: false
+      - key: DEFAULT_CURRENCY
+        value: USD
+      - key: AGENT_INTERVAL_MINUTES
+        value: "5"
+      - key: DB_PATH
+        value: invoices.db

@@ -15,7 +15,7 @@ MIN_DAYS_BETWEEN = int(os.getenv("MIN_DAYS_BETWEEN", "2"))
 MAX_PER_DAY = 2  # PayPal allows at most 2 reminders per invoice per day
 
 PAID = {"PAID", "MARKED_AS_PAID"}
-CLOSED = PAID | {"CANCELLED"}
+CLOSED = PAID | {"CANCELLED", "REFUNDED"}
 STAGE_LABELS = {"pre_due": "Pre-due", "friendly": "Friendly", "professional": "Professional", "firm": "Firm"}
 
 _lock = asyncio.Lock()
