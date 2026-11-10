@@ -6,9 +6,11 @@ Built for the PayPal AI Hackathon 2026 with the PayPal Invoicing API v2 (sandbox
 
 ## Live demo
 
-**https://YOUR-APP.onrender.com** (placeholder: replace after deploying)
+**https://invoice-chaser-pk48.onrender.com**
 
-It runs on PayPal **sandbox**, so no real money moves. The first visit after a quiet spell can take up to a minute while the free instance wakes up.
+> **Note:** it runs on Render's free tier, so the instance sleeps when idle and the first visit may take up to a minute to wake it up. After that it's fast.
+
+It runs on PayPal **sandbox**, so no real money moves.
 
 ## Why?
 
